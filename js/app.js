@@ -166,10 +166,12 @@ navigator.language = navigator.language ||
                 $scope.page = page;
             };
 
-            Plan.setWordcamp($scope.selected_wordcamp).then(function () {
-                $scope.plan = Plan.plan;
-                $scope.sessions = Plan.sessions;
-            });
+            if ( $scope.selected_wordcamp !== false ) {
+                Plan.setWordcamp($scope.selected_wordcamp).then(function () {
+                    $scope.plan = Plan.plan;
+                    $scope.sessions = Plan.sessions;
+                });
+            }
 
             WordCamps.get().then(function () {
                 $scope.wordcamps = WordCamps.wordcamps;
