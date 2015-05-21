@@ -10,14 +10,18 @@
 <body>
 <div class="container" ng-app="wordcamp-web-app" ng-controller="MainCtrl">
     <div class="tab-headings">
+        <div class="wordcamp-select">
+            <select ng-model="selected_wordcamp"
+                    ng-options="item.title for item in wordcamps track by item.ID"></select>
+        </div>
         <ul>
             <li ng-repeat="(day, times) in plan">
                 <a class="pure-button"
-                   ng-class="{'pure-button-active': page == 'day-' + day}"
+                   ng-class="{'pure-button-primary': page == 'day-' + day}"
                    ng-click="change_page('day-' + day)" ng-bind="day"></a>
             </li>
             <li>
-                <a class="pure-button" ng-class="{'pure-button-active': page == 'auswahl'}"
+                <a class="pure-button" ng-class="{'pure-button-primary': page == 'auswahl'}"
                    ng-click="change_page('auswahl')">Auswahl</a>
             </li>
         </ul>
@@ -57,7 +61,7 @@
                         <thead>
                         <tr>
                             <th></th>
-                            <th ng-repeat="track in tracks">{{ track.name }}</th>
+                            <th ng-repeat="track in tracks" ng-bind-html="track.name"></th>
                         </tr>
                         </thead>
                         <tbody>

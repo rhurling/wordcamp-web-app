@@ -17,12 +17,33 @@ navigator.language = navigator.language ||
     var app = angular.module('wordcamp-web-app', ['ngSanitize', 'ngStorage']);
 
     app.factory('WordCamps', ['$http', '$q', '$localStorage', function ($http, $q, $localStorage) {
+        var self = this,
+            url = 'https://central.wordcamp.org/wp-json/posts?type=wordcamp&filter[posts_per_page]=50&filter[meta_key]=Start%20Date%20(YYYY-mm-dd)&filter[orderby]=meta_value_num&filter[order]=DESC';
 
+        $localStorage.$default({
+            wordcamp_cache: {}
+        });
+
+        self.get = function () {
+            return $q(function (resolve) {
+                if (!_.isEmpty($localStorage.wordcamp_cache)) {
+                    self.wordcamps = $localStorage.wordcamp_cache;
+                    resolve();
+                }
+
+                $http.get(url).success(function (data) {
+                    $localStorage.wordcamp_cache = self.wordcamps = data;
+                    resolve();
+                });
+            });
+        };
+
+        return self;
     }]);
 
     app.factory('Plan', ['$http', '$q', '$localStorage', function ($http, $q, $localStorage) {
         var self = this,
-            wc_url = 'https://cologne.wordcamp.org/2015/',
+            wc_url = null,
             query = 'wp-json/posts?type=wcb_session&filter[order]=ASC&filter[orderby]=meta_value_num&filter[meta_value_num]=_wcpt_session_time&filter[posts_per_page]=100';
 
         $localStorage.$default({
@@ -81,7 +102,7 @@ navigator.language = navigator.language ||
 
         self.get = function () {
             return $q(function (resolve) {
-                if ($localStorage.cache.tracks && $localStorage.cache.plan && $localStorage.cache.sessions) {
+                if ($localStorage.cache && !_.isEmpty($localStorage.cache.tracks) && !_.isEmpty($localStorage.cache.plan) && !_.isEmpty($localStorage.cache.sessions)) {
                     self.plan = $localStorage.cache.plan;
                     self.sessions = $localStorage.cache.sessions;
                     self.tracks = $localStorage.cache.tracks;
@@ -89,47 +110,81 @@ navigator.language = navigator.language ||
                     resolve();
                 }
 
-                $http.get(wc_url + query).success(function (data) {
-                    map_sessions_to_tracks(data);
-                    resolve();
-                });
+                if (wc_url) {
+                    $http.get(wc_url + query).success(function (data) {
+                        map_sessions_to_tracks(data);
+                        resolve();
+                    });
+                }
             });
+        };
+
+        self.setWordcamp = function (wordcamp) {
+            $localStorage.cache = {};
+            self.plan = null;
+            self.sessions = null;
+            self.tracks = null;
+
+            wc_url = get_meta(wordcamp.post_meta, 'URL').replace('http://', 'https://');
+            if (wc_url.substr(-1) != '/') wc_url += '/';
+            return self.get();
         };
 
         return self;
     }]);
 
-    app.controller('MainCtrl', ['$scope', 'Plan', '$localStorage', '$location', function ($scope, Plan, $localStorage, $location) {
-        Plan.get().then(function () {
-            $scope.tracks = Plan.tracks;
-            $scope.plan = Plan.plan;
-            $scope.sessions = Plan.sessions;
-        });
+    app.controller('MainCtrl', [
+        '$scope', 'Plan', '$localStorage', '$location', 'WordCamps',
+        function ($scope, Plan, $localStorage, $location, WordCamps) {
+            Plan.get().then(function () {
+                $scope.tracks = Plan.tracks;
+                $scope.plan = Plan.plan;
+                $scope.sessions = Plan.sessions;
+            });
 
-        $scope.isObject = angular.isObject;
+            $scope.isObject = angular.isObject;
 
-        $localStorage.$default({
-            selected: {}
-        });
-        $scope.selected = $localStorage.selected;
+            $localStorage.$default({
+                selected: {},
+                selected_wordcamp: false
+            });
+            $scope.selected_wordcamp = $localStorage.selected_wordcamp;
+            $scope.selected = $localStorage.selected;
 
-        $scope.select = function (day, time, session_id) {
-            if (!$scope.selected[day]) {
-                $scope.selected[day] = {};
-            }
+            $scope.select = function (day, time, session_id) {
+                if (!$scope.selected[day]) {
+                    $scope.selected[day] = {};
+                }
 
-            $scope.selected[day][time] = session_id;
-        };
+                $scope.selected[day][time] = session_id;
+            };
 
-        $scope.reset_selection = function () {
-            $localStorage.selected = $scope.selected = {};
-        };
+            $scope.reset_selection = function () {
+                $localStorage.selected = $scope.selected = {};
+            };
 
-        $scope.page = $location.search().page || 'auswahl';
-        $scope.change_page = function(page) {
-            $location.search('page', page);
-            $scope.page = page;
+            $scope.page = $location.search().page || 'auswahl';
+            $scope.change_page = function (page) {
+                $location.search('page', page);
+                $scope.page = page;
+            };
+
+            WordCamps.get().then(function () {
+                $scope.wordcamps = WordCamps.wordcamps;
+            });
+
+            $scope.$watch('selected_wordcamp', function (newVal, oldVal) {
+                if (oldVal !== newVal) {
+                    $localStorage.selected = {};
+                    $localStorage.selected_wordcamp = newVal;
+                    Plan.setWordcamp(newVal).then(function () {
+                        $scope.tracks = Plan.tracks;
+                        $scope.plan = Plan.plan;
+                        $scope.sessions = Plan.sessions;
+                    });
+                }
+            });
         }
-    }]);
+    ]);
 
 })();

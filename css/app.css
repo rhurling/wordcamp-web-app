@@ -888,19 +888,25 @@ table {
 html, .pure-table {
   font-family: 'Open Sans', Helvetica, Arial, sans-serif; }
 
+.tab-headings {
+  text-align: center; }
+  .tab-headings .wordcamp-select {
+    margin-bottom: 1em; }
+  .tab-headings ul {
+    padding: 0;
+    margin-top: 0; }
+  .tab-headings li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: inline-block; }
+
 @media screen and (max-width: 640px) {
   .overflow-container {
-    overflow-y: scroll; } }
-.tab-headings ul {
-  padding: 0;
-  margin-top: 0;
-  display: inline-block; }
-.tab-headings li {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  float: left; }
+    overflow-y: scroll; }
 
+  .tab-headings li, .tab-headings .pure-button {
+    display: block; } }
 table {
   width: 100%;
   margin-bottom: .75em; }
