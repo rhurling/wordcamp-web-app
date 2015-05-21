@@ -1,0 +1,125 @@
+@import "pure";
+
+html, .pure-table {
+  font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+}
+
+@media screen and (max-width: 640px) {
+  .overflow-container {
+    overflow-y: scroll;
+  }
+}
+
+.tab-headings {
+  ul {
+    padding: 0;
+    margin-top: 0;
+    display: inline-block;
+  }
+
+  li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    float: left;
+  }
+}
+
+table {
+  width: 100%;
+  margin-bottom: .75em;
+}
+
+th:first-child {
+  width: 40px;
+}
+
+.container {
+  margin: auto;
+  max-width: 1000px;
+  padding: 20px;
+}
+
+.break {
+  text-align: center;
+  color: #aaa;
+}
+
+.speaker, .saal {
+  font-size: .8em;
+  color: #777;
+}
+
+.speaker ~ .saal:before {
+  content: ' - ';
+}
+
+#reset {
+  float: right;
+  cursor: pointer;
+}
+
+.pure-table .session {
+  cursor: pointer;
+
+  &:hover {
+    background-color: #eee;
+  }
+
+  &-selected {
+    background-color: #007fb5;
+    color: #fff;
+
+    .speaker, .saal {
+      color: #efefef;
+    }
+
+    &:hover {
+      background-color: darken(#007fb5, 5%);
+    }
+  }
+}
+
+.tab-headings .pure-button {
+  border-radius: 0;
+}
+
+.tab-content > div {
+  display: none;
+
+  &.active {
+    display: block;
+  }
+}
+
+#auswahl h1:first-child {
+  margin-top: 0;
+}
+
+@media print {
+  #samstag, #sonntag {
+    display: block;
+  }
+
+  #samstag:before {
+    content: 'Samstag';
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: .67em;
+    display: block;
+  }
+
+  #sonntag:before {
+    @extend #samstag:before;
+    margin-top: .67em;
+    content: 'Sonntag'
+  }
+
+  #auswahl, .tab-headings, label, input {
+    display: none;
+  }
+}
+
+input {
+  max-width: 100%;
+}

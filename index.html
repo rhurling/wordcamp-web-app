@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WordCamp Web App</title>
+
+    <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="container" ng-app="wordcamp-web-app" ng-controller="MainCtrl">
+    <div class="day" ng-repeat="(day, times) in plan">
+        <h1>{{ day }}</h1>
+
+        <table class="pure-table pure-table-bordered">
+            <thead>
+            <tr>
+                <th></th>
+                <th ng-repeat="track in tracks">{{ track.name }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="(time, session_ids) in times" ng-class="{ 'global-session': !isObject(session_ids) }">
+                <td>{{ time }}</td>
+                <td colspan="{{ tracks.length }}" ng-if="!isObject(session_ids)"
+                    ng-bind-html="sessions[session_ids].title"></td>
+                <td ng-repeat="track in tracks" ng-if="isObject(session_ids)"
+                    ng-click="select(day, time, session_ids[track.ID])"
+                    ng-class="{'session': session_ids[track.ID],'session-selected': selected[day][time] && selected[day][time] === session_ids[track.ID]}">
+                    <span ng-bind-html="sessions[session_ids[track.ID]].title"></span><br>
+                    <a class="speaker" ng-bind-html="sessions[session_ids[track.ID]].speaker.title"></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript" src="bower_components/underscore/underscore-min.js"></script>
+<script type="text/javascript" src="bower_components/moment/min/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
+<script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
+<script type="text/javascript" src="bower_components/ngstorage/ngStorage.min.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
