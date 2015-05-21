@@ -9,32 +9,77 @@
 </head>
 <body>
 <div class="container" ng-app="wordcamp-web-app" ng-controller="MainCtrl">
-    <div class="day" ng-repeat="(day, times) in plan">
-        <h1>{{ day }}</h1>
+    <div class="tab-headings">
+        <ul>
+            <li ng-repeat="(day, times) in plan">
+                <a class="pure-button"
+                   ng-class="{'pure-button-active': page == 'day-' + day}"
+                   ng-click="change_page('day-' + day)" ng-bind="day"></a>
+            </li>
+            <li>
+                <a class="pure-button" ng-class="{'pure-button-active': page == 'auswahl'}"
+                   ng-click="change_page('auswahl')">Auswahl</a>
+            </li>
+        </ul>
+    </div>
+    <div class="tab-content">
+        <div class="day" ng-repeat="(day, times) in plan" ng-class="{'active': page == 'day-' + day}">
+            <h1 ng-bind="day"></h1>
 
-        <table class="pure-table pure-table-bordered">
-            <thead>
-            <tr>
-                <th></th>
-                <th ng-repeat="track in tracks">{{ track.name }}</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="(time, session_ids) in times" ng-class="{ 'global-session': !isObject(session_ids) }">
-                <td>{{ time }}</td>
-                <td colspan="{{ tracks.length }}" ng-if="!isObject(session_ids)"
-                    ng-bind-html="sessions[session_ids].title"></td>
-                <td ng-repeat="track in tracks" ng-if="isObject(session_ids)"
-                    ng-click="select(day, time, session_ids[track.ID])"
-                    ng-class="{'session': session_ids[track.ID],'session-selected': selected[day][time] && selected[day][time] === session_ids[track.ID]}">
-                    <span ng-bind-html="sessions[session_ids[track.ID]].title"></span><br>
-                    <a class="speaker" ng-bind-html="sessions[session_ids[track.ID]].speaker.title"></a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+            <table class="pure-table pure-table-bordered">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Session</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="(time, session_ids) in times" ng-class="{ 'global-session': !isObject(session_ids) }"
+                    ng-if="!isObject(session_ids) || selected[day][time]">
+                    <td>{{ time }}</td>
+                    <td ng-if="!isObject(session_ids)" ng-bind-html="sessions[session_ids].title"></td>
+                    <td ng-if="isObject(session_ids)">
+                        <span ng-bind-html="sessions[selected[day][time]].title"></span><br>
+                        <a class="speaker" ng-if="sessions[selected[day][time]].speaker "
+                           ng-bind-html="sessions[selected[day][time]].speaker.title"></a>
+                        <span class="saal" ng-bind-html="sessions[selected[day][time]].terms.wcb_track[0].name"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="auswahl" ng-class="{'active' : page == 'auswahl'}">
+            <div ng-repeat="(day, times) in plan">
+                <h1 ng-bind="day"></h1>
 
-        <a ng-click="reset_selection()">Auswahl Zurücksetzen</a>
+                <div class="overflow-container">
+                    <table class="pure-table pure-table-bordered">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th ng-repeat="track in tracks">{{ track.name }}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="(time, session_ids) in times"
+                            ng-class="{ 'global-session': !isObject(session_ids) }">
+                            <td>{{ time }}</td>
+                            <td colspan="{{ tracks.length }}" ng-if="!isObject(session_ids)"
+                                ng-bind-html="sessions[session_ids].title"></td>
+                            <td ng-repeat="track in tracks" ng-if="isObject(session_ids)"
+                                ng-click="select(day, time, session_ids[track.ID])"
+                                ng-class="{'session': session_ids[track.ID],'session-selected': selected[day][time] && selected[day][time] === session_ids[track.ID]}">
+                                <span ng-bind-html="sessions[session_ids[track.ID]].title"></span><br>
+                                <a class="speaker" ng-bind-html="sessions[session_ids[track.ID]].speaker.title"></a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <a ng-click="reset_selection()">Auswahl Zurücksetzen</a>
+        </div>
     </div>
 </div>
 

@@ -16,7 +16,11 @@ navigator.language = navigator.language ||
 
     var app = angular.module('wordcamp-web-app', ['ngSanitize', 'ngStorage']);
 
-    app.factory('Sessions', ['$http', '$q', '$localStorage', function ($http, $q, $localStorage) {
+    app.factory('WordCamps', ['$http', '$q', '$localStorage', function ($http, $q, $localStorage) {
+
+    }]);
+
+    app.factory('Plan', ['$http', '$q', '$localStorage', function ($http, $q, $localStorage) {
         var self = this,
             wc_url = 'https://cologne.wordcamp.org/2015/',
             query = 'wp-json/posts?type=wcb_session&filter[order]=ASC&filter[orderby]=meta_value_num&filter[meta_value_num]=_wcpt_session_time&filter[posts_per_page]=100';
@@ -76,7 +80,7 @@ navigator.language = navigator.language ||
         };
 
         self.get = function () {
-            return $q(function (resolve, reject) {
+            return $q(function (resolve) {
                 if ($localStorage.cache.tracks && $localStorage.cache.plan && $localStorage.cache.sessions) {
                     self.plan = $localStorage.cache.plan;
                     self.sessions = $localStorage.cache.sessions;
@@ -95,11 +99,11 @@ navigator.language = navigator.language ||
         return self;
     }]);
 
-    app.controller('MainCtrl', ['$scope', 'Sessions', '$localStorage', function ($scope, Sessions, $localStorage) {
-        Sessions.get().then(function () {
-            $scope.tracks = Sessions.tracks;
-            $scope.plan = Sessions.plan;
-            $scope.sessions = Sessions.sessions;
+    app.controller('MainCtrl', ['$scope', 'Plan', '$localStorage', '$location', function ($scope, Plan, $localStorage, $location) {
+        Plan.get().then(function () {
+            $scope.tracks = Plan.tracks;
+            $scope.plan = Plan.plan;
+            $scope.sessions = Plan.sessions;
         });
 
         $scope.isObject = angular.isObject;
@@ -119,6 +123,12 @@ navigator.language = navigator.language ||
 
         $scope.reset_selection = function () {
             $localStorage.selected = $scope.selected = {};
+        };
+
+        $scope.page = $location.search().page || 'auswahl';
+        $scope.change_page = function(page) {
+            $location.search('page', page);
+            $scope.page = page;
         }
     }]);
 
