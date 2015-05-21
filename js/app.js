@@ -16,11 +16,14 @@ navigator.language = navigator.language ||
 
     var app = angular.module('wordcamp-web-app', ['ngSanitize', 'ngStorage']);
 
-    app.factory('Sessions', ['$http', '$q', function ($http, $q) {
+    app.factory('Sessions', ['$http', '$q', '$localStorage', function ($http, $q, $localStorage) {
         var self = this,
             wc_url = 'https://cologne.wordcamp.org/2015/',
-        //query = 'wp-json/posts?type=wcb_session&filter[order]=DESC&filter[orderby]=modified&filter[posts_per_page]=100',
             query = 'wp-json/posts?type=wcb_session&filter[order]=ASC&filter[orderby]=meta_value_num&filter[meta_value_num]=_wcpt_session_time&filter[posts_per_page]=100';
+
+        $localStorage.$default({
+            cache: {}
+        });
 
         var get_meta = function (meta, key) {
             if (meta) {
@@ -67,16 +70,23 @@ navigator.language = navigator.language ||
                 });
             });
 
-            self.plan = _plan;
-            self.sessions = _sessions;
-            self.tracks = _.values(_tracks);
+            $localStorage.cache.plan = self.plan = _plan;
+            $localStorage.cache.sessions = self.sessions = _sessions;
+            $localStorage.cache.tracks = self.tracks = _.values(_tracks);
         };
 
         self.get = function () {
             return $q(function (resolve, reject) {
-                $http.get(wc_url + query, {cache: true}).success(function (data) {
+                if ($localStorage.cache.tracks && $localStorage.cache.plan && $localStorage.cache.sessions) {
+                    self.plan = $localStorage.cache.plan;
+                    self.sessions = $localStorage.cache.sessions;
+                    self.tracks = $localStorage.cache.tracks;
+
+                    resolve();
+                }
+
+                $http.get(wc_url + query).success(function (data) {
                     map_sessions_to_tracks(data);
-                    console.log(self.plan, self.tracks);
                     resolve();
                 });
             });
@@ -91,6 +101,7 @@ navigator.language = navigator.language ||
             $scope.plan = Sessions.plan;
             $scope.sessions = Sessions.sessions;
         });
+
         $scope.isObject = angular.isObject;
 
         $localStorage.$default({
@@ -98,13 +109,17 @@ navigator.language = navigator.language ||
         });
         $scope.selected = $localStorage.selected;
 
-        $scope.select = function(day, time, session_id) {
-            if ( ! $scope.selected[day] ) {
+        $scope.select = function (day, time, session_id) {
+            if (!$scope.selected[day]) {
                 $scope.selected[day] = {};
             }
 
             $scope.selected[day][time] = session_id;
         };
+
+        $scope.reset_selection = function () {
+            $localStorage.selected = $scope.selected = {};
+        }
     }]);
 
 })();

@@ -123,3 +123,7 @@ th:first-child {
 input {
   max-width: 100%;
 }
+
+a[ng-click] {
+  cursor: pointer;
+}
