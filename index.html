@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WordCamp Web App</title>
 
     <link href='//fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
@@ -27,7 +29,7 @@
         </ul>
     </div>
     <div class="tab-content">
-        <div class="day" ng-repeat="(day, times) in plan" ng-class="{'active': page == 'day-' + day}">
+        <div class="day" ng-repeat="(day, item) in plan" ng-class="{'active': page == 'day-' + day}">
             <h1 ng-bind="day"></h1>
 
             <table class="pure-table pure-table-bordered">
@@ -38,8 +40,8 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="(time, session_ids) in times" ng-class="{ 'global-session': !isObject(session_ids) }"
-                    ng-if="!isObject(session_ids) || selected[day][time]">
+                <tr ng-repeat="(time, session_ids) in item.times" ng-if="!isObject(session_ids) || selected[day][time]"
+                    ng-class="{ 'global-session': !isObject(session_ids) }">
                     <td>{{ time }}</td>
                     <td ng-if="!isObject(session_ids)" ng-bind-html="sessions[session_ids].title"></td>
                     <td ng-if="isObject(session_ids)">
@@ -53,7 +55,7 @@
             </table>
         </div>
         <div class="auswahl" ng-class="{'active' : page == 'auswahl'}">
-            <div ng-repeat="(day, times) in plan">
+            <div ng-repeat="(day, item) in plan">
                 <h1 ng-bind="day"></h1>
 
                 <div class="overflow-container">
@@ -61,16 +63,16 @@
                         <thead>
                         <tr>
                             <th></th>
-                            <th ng-repeat="track in tracks" ng-bind-html="track.name"></th>
+                            <th ng-repeat="track in item.tracks" ng-bind-html="track.name"></th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr ng-repeat="(time, session_ids) in times"
+                        <tr ng-repeat="(time, session_ids) in item.times"
                             ng-class="{ 'global-session': !isObject(session_ids) }">
                             <td>{{ time }}</td>
-                            <td colspan="{{ tracks.length }}" ng-if="!isObject(session_ids)"
+                            <td colspan="{{ item.tracks.length }}" ng-if="!isObject(session_ids)"
                                 ng-bind-html="sessions[session_ids].title"></td>
-                            <td ng-repeat="track in tracks" ng-if="isObject(session_ids)"
+                            <td ng-repeat="track in item.tracks" ng-if="isObject(session_ids)"
                                 ng-click="select(day, time, session_ids[track.ID])"
                                 ng-class="{'session': session_ids[track.ID],'session-selected': selected[day][time] && selected[day][time] === session_ids[track.ID]}">
                                 <span ng-bind-html="sessions[session_ids[track.ID]].title"></span><br>

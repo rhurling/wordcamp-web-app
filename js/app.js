@@ -61,8 +61,8 @@ navigator.language = navigator.language ||
             return false;
         };
 
-        var map_sessions_to_tracks = function (data) {
-            var _plan = {}, _sessions = {}, _tracks = {};
+        var build_plan = function (data) {
+            var _plan = {}, _sessions = {};
 
             angular.forEach(data, function (session) {
                 var time = get_meta(session.post_meta, '_wcpt_session_time'), date, day;
@@ -73,57 +73,60 @@ navigator.language = navigator.language ||
                     time = date.format('LT');
                     angular.forEach(session.terms.wcb_track, function (track) {
                         if (!_plan[day]) {
-                            _plan[day] = {};
+                            _plan[day] = {
+                                tracks: {},
+                                times: {}
+                            };
                         }
-                        if (!_plan[day][time]) {
-                            _plan[day][time] = {};
+                        if (!_plan[day].times[time]) {
+                            _plan[day].times[time] = {};
                         }
 
-                        _plan[day][time][track.ID] = session.ID;
-                        _tracks[track.ID] = track;
+                        _plan[day].times[time][track.ID] = session.ID;
+                        _plan[day].tracks[track.ID] = track;
                     });
                 }
                 _sessions[session.ID] = session;
             });
 
-            _.each(_plan, function (times, day) {
-                _.each(times, function (session_ids, time) {
+            _.each(_plan, function (item, day) {
+                _plan[day].tracks = _.sortBy(_.values(item.tracks), 'name');
+                _.each(item.times, function (session_ids, time) {
                     var values = _.values(session_ids);
                     if (values.length > 1 && _.uniq(values, true).length === 1) {
-                        _plan[day][time] = values[0];
+                        _plan[day].times[time] = values[0];
                     }
                 });
             });
 
             $localStorage.cache.plan = self.plan = _plan;
             $localStorage.cache.sessions = self.sessions = _sessions;
-            $localStorage.cache.tracks = self.tracks = _.values(_tracks);
         };
 
         self.get = function () {
             return $q(function (resolve) {
-                if ($localStorage.cache && !_.isEmpty($localStorage.cache.tracks) && !_.isEmpty($localStorage.cache.plan) && !_.isEmpty($localStorage.cache.sessions)) {
+                if ($localStorage.cache && !_.isEmpty($localStorage.cache.plan) && !_.isEmpty($localStorage.cache.sessions)) {
                     self.plan = $localStorage.cache.plan;
                     self.sessions = $localStorage.cache.sessions;
-                    self.tracks = $localStorage.cache.tracks;
 
                     resolve();
                 }
 
                 if (wc_url) {
                     $http.get(wc_url + query).success(function (data) {
-                        map_sessions_to_tracks(data);
+                        build_plan(data);
                         resolve();
                     });
                 }
             });
         };
 
-        self.setWordcamp = function (wordcamp) {
-            $localStorage.cache = {};
-            self.plan = null;
-            self.sessions = null;
-            self.tracks = null;
+        self.setWordcamp = function (wordcamp, reset) {
+            if (reset === true) {
+                $localStorage.cache = {};
+                self.plan = null;
+                self.sessions = null;
+            }
 
             wc_url = get_meta(wordcamp.post_meta, 'URL').replace('http://', 'https://');
             if (wc_url.substr(-1) != '/') wc_url += '/';
@@ -136,12 +139,6 @@ navigator.language = navigator.language ||
     app.controller('MainCtrl', [
         '$scope', 'Plan', '$localStorage', '$location', 'WordCamps',
         function ($scope, Plan, $localStorage, $location, WordCamps) {
-            Plan.get().then(function () {
-                $scope.tracks = Plan.tracks;
-                $scope.plan = Plan.plan;
-                $scope.sessions = Plan.sessions;
-            });
-
             $scope.isObject = angular.isObject;
 
             $localStorage.$default({
@@ -169,6 +166,11 @@ navigator.language = navigator.language ||
                 $scope.page = page;
             };
 
+            Plan.setWordcamp($scope.selected_wordcamp).then(function () {
+                $scope.plan = Plan.plan;
+                $scope.sessions = Plan.sessions;
+            });
+
             WordCamps.get().then(function () {
                 $scope.wordcamps = WordCamps.wordcamps;
             });
@@ -177,8 +179,7 @@ navigator.language = navigator.language ||
                 if (oldVal !== newVal) {
                     $localStorage.selected = {};
                     $localStorage.selected_wordcamp = newVal;
-                    Plan.setWordcamp(newVal).then(function () {
-                        $scope.tracks = Plan.tracks;
+                    Plan.setWordcamp(newVal, true).then(function () {
                         $scope.plan = Plan.plan;
                         $scope.sessions = Plan.sessions;
                     });
