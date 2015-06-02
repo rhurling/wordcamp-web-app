@@ -888,6 +888,9 @@ table {
 html, .pure-table {
   font-family: 'Open Sans', Helvetica, Arial, sans-serif; }
 
+select {
+  max-width: 100%; }
+
 .tab-headings {
   text-align: center; }
   .tab-headings .wordcamp-select {

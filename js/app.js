@@ -200,7 +200,7 @@ navigator.language = navigator.language ||
             };
 
             // Get sessions if a WordCamp is selected
-            if ( $scope.selected_wordcamp !== false ) {
+            if ($scope.selected_wordcamp !== false) {
                 Plan.setWordcamp($scope.selected_wordcamp).then(function () {
                     $scope.plan = Plan.plan;
                     $scope.sessions = Plan.sessions;
